@@ -71,11 +71,12 @@ public class BookRepositoryTests : RepositoryTestBase
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetAllAsync(search: "C#");
+        var (items, totalCount) = await _repository.GetAllAsync(search: "C#");
 
         // Assert
-        result.Should().HaveCount(1);
-        result[0].Title.Should().Be("C# in Depth");
+        items.Should().HaveCount(1);
+        totalCount.Should().Be(1);
+        items[0].Title.Should().Be("C# in Depth");
     }
 
     [Fact]
@@ -90,11 +91,12 @@ public class BookRepositoryTests : RepositoryTestBase
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetAllAsync(minPrice: 20m, maxPrice: 40m);
+        var (items, totalCount) = await _repository.GetAllAsync(minPrice: 20m, maxPrice: 40m);
 
         // Assert
-        result.Should().HaveCount(1);
-        result[0].Title.Should().Be("Book 30");
+        items.Should().HaveCount(1);
+        totalCount.Should().Be(1);
+        items[0].Title.Should().Be("Book 30");
     }
 
     [Fact]
@@ -108,12 +110,13 @@ public class BookRepositoryTests : RepositoryTestBase
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetAllAsync(sort: "price_asc");
+        var (items, totalCount) = await _repository.GetAllAsync(sort: "price_asc");
 
         // Assert
-        result.Should().HaveCount(2);
-        result[0].Price.Should().Be(10m);
-        result[1].Price.Should().Be(90m);
+        items.Should().HaveCount(2);
+        totalCount.Should().Be(2);
+        items[0].Price.Should().Be(10m);
+        items[1].Price.Should().Be(90m);
     }
 
     [Fact]
@@ -127,12 +130,32 @@ public class BookRepositoryTests : RepositoryTestBase
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetAllAsync(sort: "price_desc");
+        var (items, totalCount) = await _repository.GetAllAsync(sort: "price_desc");
 
         // Assert
-        result.Should().HaveCount(2);
-        result[0].Price.Should().Be(90m);
-        result[1].Price.Should().Be(10m);
+        items.Should().HaveCount(2);
+        totalCount.Should().Be(2);
+        items[0].Price.Should().Be(90m);
+        items[1].Price.Should().Be(10m);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldReturnPaginatedResultsAndTotalCount_WhenPaginationProvided()
+    {
+        // Arrange
+        for (int i = 1; i <= 15; i++)
+        {
+            _context.Books.Add(new Book { Title = $"Book {i:D2}", Author = "Author", Price = 10m * i, Category = "Cat", Stock = 1 });
+        }
+        await _context.SaveChangesAsync();
+
+        // Act - Page 2 with PageSize 10
+        var (items, totalCount) = await _repository.GetAllAsync(pageIndex: 2, pageSize: 10);
+
+        // Assert
+        items.Should().HaveCount(5);
+        totalCount.Should().Be(15);
+        items[0].Title.Should().Be("Book 11");
     }
 
     [Fact]

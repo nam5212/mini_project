@@ -1,14 +1,17 @@
 using BookManager.Application.DTOs.Books;
+using BookManager.Application.DTOs.Common;
 
 namespace BookManager.Application.Interfaces;
 
 public interface IBookService
 {
-    Task<List<BookResponseDto>> GetAllAsync(
+    Task<PagedResultDto<BookResponseDto>> GetAllAsync(
         string? search = null,
         string? sort = null,
         decimal? minPrice = null,
         decimal? maxPrice = null,
+        int pageIndex = 1,
+        int pageSize = 10,
         CancellationToken ct = default);
 
     Task<BookResponseDto?> GetByIdAsync(

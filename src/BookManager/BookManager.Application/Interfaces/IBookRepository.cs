@@ -4,11 +4,13 @@ namespace BookManager.Application.Interfaces;
 
 public interface IBookRepository
 {
-    Task<List<Book>> GetAllAsync(
+    Task<(List<Book> Items, int TotalCount)> GetAllAsync(
         string? search = null,
         string? sort = null,
         decimal? minPrice = null,
         decimal? maxPrice = null,
+        int pageIndex = 1,
+        int pageSize = 10,
         CancellationToken ct = default);
 
     Task<Book?> GetByIdAsync(

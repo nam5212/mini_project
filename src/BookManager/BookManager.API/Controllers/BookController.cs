@@ -1,4 +1,5 @@
 using BookManager.Application.DTOs.Books;
+using BookManager.Application.DTOs.Common;
 using BookManager.Application.Services;
 using BookManager.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -17,15 +18,17 @@ public class BookController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<BookResponseDto>>> GetAll(
+    public async Task<ActionResult<PagedResultDto<BookResponseDto>>> GetAll(
         [FromQuery] string? search,
         [FromQuery] string? sort,
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
-        CancellationToken ct)
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
     {
-        var books = await _bookService.GetAllAsync(search, sort, minPrice, maxPrice, ct);
-        return Ok(books);
+        var result = await _bookService.GetAllAsync(search, sort, minPrice, maxPrice, pageIndex, pageSize, ct);
+        return Ok(result);
     }
 
     [HttpGet("{id:int}")]

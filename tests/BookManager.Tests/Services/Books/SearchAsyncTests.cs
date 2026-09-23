@@ -11,8 +11,8 @@ public class SearchAsyncTests : BookServiceBase
             new() { Id = 1, Title = "C# in Depth", Author = "Jon Skeet", Price = 45m, Category = ".NET", Stock = 10 }
         };
 
-        _bookRepository.GetAllAsync(search: "C#", ct: Arg.Any<CancellationToken>())
-            .Returns(books);
+        _bookRepository.GetAllAsync(search: "C#", pageIndex: 1, pageSize: 1000, ct: Arg.Any<CancellationToken>())
+            .Returns((books, 1));
 
         // Act
         var result = await _bookService.SearchAsync("C#");

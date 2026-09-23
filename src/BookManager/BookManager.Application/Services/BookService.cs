@@ -1,6 +1,6 @@
 using BookManager.Application.DTOs.Books;
+using BookManager.Application.DTOs.Common;
 using BookManager.Domain.Entities;
-using BookManager.Application.Interfaces;
 using BookManager.Application.Interfaces;
 
 namespace BookManager.Application.Services;
@@ -14,15 +14,27 @@ public class BookService : IBookService
         _bookRepository = bookRepository;
     }
 
-    public async Task<List<BookResponseDto>> GetAllAsync(
+    public async Task<PagedResultDto<BookResponseDto>> GetAllAsync(
         string? search = null,
         string? sort = null,
         decimal? minPrice = null,
         decimal? maxPrice = null,
+        int pageIndex = 1,
+        int pageSize = 10,
         CancellationToken ct = default)
     {
-        var books = await _bookRepository.GetAllAsync(search, sort, minPrice, maxPrice, ct);
-        return books.Select(MapToResponseDto).ToList();
+        if (pageIndex < 1) pageIndex = 1;
+        if (pageSize < 1) pageSize = 10;
+
+        var (books, totalCount) = await _bookRepository.GetAllAsync(search, sort, minPrice, maxPrice, pageIndex, pageSize, ct);
+
+        return new PagedResultDto<BookResponseDto>
+        {
+            Items = books.Select(MapToResponseDto).ToList(),
+            TotalCount = totalCount,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        };
     }
 
     public async Task<BookResponseDto?> GetByIdAsync(int id, CancellationToken ct = default)
@@ -83,7 +95,7 @@ public class BookService : IBookService
 
     public async Task<List<BookResponseDto>> SearchAsync(string keyword, CancellationToken ct = default)
     {
-        var books = await _bookRepository.GetAllAsync(keyword, ct: ct);
+        var (books, _) = await _bookRepository.GetAllAsync(keyword, pageIndex: 1, pageSize: 1000, ct: ct);
         return books.Select(MapToResponseDto).ToList();
     }
 

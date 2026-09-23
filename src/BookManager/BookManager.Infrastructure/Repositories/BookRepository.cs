@@ -14,11 +14,13 @@ public class BookRepository : IBookRepository
         _context = context;
     }
 
-    public async Task<List<Book>> GetAllAsync(
+    public async Task<(List<Book> Items, int TotalCount)> GetAllAsync(
         string? search = null,
         string? sort = null,
         decimal? minPrice = null,
         decimal? maxPrice = null,
+        int pageIndex = 1,
+        int pageSize = 10,
         CancellationToken ct = default)
     {
         var query = _context.Books
@@ -44,6 +46,8 @@ public class BookRepository : IBookRepository
             query = query.Where(x => x.Price <= maxPrice.Value);
         }
 
+        var totalCount = await query.CountAsync(ct);
+
         query = sort?.Trim().ToLowerInvariant() switch
         {
             "price_desc" => query.OrderByDescending(x => x.Price).ThenBy(x => x.Id),
@@ -51,7 +55,15 @@ public class BookRepository : IBookRepository
             _ => query.OrderBy(x => x.Id)
         };
 
-        return await query.ToListAsync(ct);
+        if (pageIndex < 1) pageIndex = 1;
+        if (pageSize < 1) pageSize = 10;
+
+        var items = await query
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
     }
 
     public async Task<Book?> GetByIdAsync(

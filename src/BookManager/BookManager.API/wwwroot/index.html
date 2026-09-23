@@ -90,6 +90,25 @@
     .hidden {
       display: none;
     }
+    .pagination-btn {
+      padding: 6px 12px;
+      background: #e5e7eb;
+      color: #374151;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .pagination-btn.active {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+      font-weight: bold;
+    }
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -163,6 +182,11 @@
         </thead>
         <tbody id="bookTableBody"></tbody>
       </table>
+
+      <div id="paginationContainer" style="margin-top: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div id="paginationInfo" style="font-weight: 500; color: #4b5563;">Trang 1 / 1 (Tổng số: 0 sách)</div>
+        <div id="paginationControls" style="display: flex; gap: 5px; flex-wrap: wrap;"></div>
+      </div>
     </div>
   </div>
 
@@ -280,36 +304,43 @@
       }
     });
 
+    let currentPage = 1;
+    const pageSize = 10;
+
     document.getElementById('resetBookBtn').addEventListener('click', resetBookForm);
 
-    document.getElementById('loadBooksBtn').addEventListener('click', loadBooks);
-    document.getElementById('applyFiltersBtn').addEventListener('click', loadBooks);
+    document.getElementById('loadBooksBtn').addEventListener('click', () => loadBooks(1));
+    document.getElementById('applyFiltersBtn').addEventListener('click', () => loadBooks(1));
     document.getElementById('resetFiltersBtn').addEventListener('click', async () => {
       searchInput.value = '';
       sortSelect.value = '';
       minPriceInput.value = '';
       maxPriceInput.value = '';
-      await loadBooks();
+      await loadBooks(1);
     });
 
     [searchInput, minPriceInput, maxPriceInput].forEach((input) => {
       input.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          await loadBooks();
+          await loadBooks(1);
         }
       });
     });
 
-    sortSelect.addEventListener('change', loadBooks);
+    sortSelect.addEventListener('change', () => loadBooks(1));
 
-    async function loadBooks() {
+    async function loadBooks(page = 1) {
       try {
+        currentPage = page;
         const query = new URLSearchParams();
         const search = searchInput.value.trim();
         const sort = sortSelect.value;
         const minPrice = minPriceInput.value.trim();
         const maxPrice = maxPriceInput.value.trim();
+
+        query.set('pageIndex', currentPage);
+        query.set('pageSize', pageSize);
 
         if (search) {
           query.set('search', search);
@@ -332,16 +363,94 @@
           return;
         }
 
-        const url = query.toString()
-          ? `${apiBase}/api/books?${query.toString()}`
-          : `${apiBase}/api/books`;
+        const url = `${apiBase}/api/books?${query.toString()}`;
 
-        const books = await apiRequest(url);
-        renderBooks(books);
-        setStatus(`Loaded ${books.length} book(s).`);
+        const data = await apiRequest(url);
+        renderBooks(data.items || []);
+        renderPagination(data);
+        setStatus(`Loaded page ${data.pageIndex} of ${data.totalPages || 1} (${data.totalCount} total books).`);
       } catch (err) {
         setStatus(`Load books failed: ${err.message}`);
       }
+    }
+
+    function renderPagination(data) {
+      const info = document.getElementById('paginationInfo');
+      const controls = document.getElementById('paginationControls');
+
+      const totalCount = data.totalCount || 0;
+      const totalPages = data.totalPages || 1;
+      const pageIndex = data.pageIndex || 1;
+
+      info.textContent = `Trang ${pageIndex} / ${totalPages} (Tổng số: ${totalCount} sách)`;
+      controls.innerHTML = '';
+
+      if (totalPages <= 1) return;
+
+      // First page button
+      const firstBtn = document.createElement('button');
+      firstBtn.className = 'pagination-btn';
+      firstBtn.textContent = '«« Đầu';
+      firstBtn.disabled = !data.hasPreviousPage;
+      firstBtn.addEventListener('click', () => loadBooks(1));
+      controls.appendChild(firstBtn);
+
+      // Prev button
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'pagination-btn';
+      prevBtn.textContent = '« Trước';
+      prevBtn.disabled = !data.hasPreviousPage;
+      prevBtn.addEventListener('click', () => loadBooks(pageIndex - 1));
+      controls.appendChild(prevBtn);
+
+      // Page numbers (smart range around current page)
+      const maxVisible = 5;
+      let startPage = Math.max(1, pageIndex - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+      if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+
+      if (startPage > 1) {
+        const dots = document.createElement('span');
+        dots.style.padding = '6px 8px';
+        dots.style.color = '#6b7280';
+        dots.textContent = '...';
+        controls.appendChild(dots);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `pagination-btn ${i === pageIndex ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.addEventListener('click', () => loadBooks(i));
+        controls.appendChild(pageBtn);
+      }
+
+      if (endPage < totalPages) {
+        const dots = document.createElement('span');
+        dots.style.padding = '6px 8px';
+        dots.style.color = '#6b7280';
+        dots.textContent = '...';
+        controls.appendChild(dots);
+      }
+
+      // Next button
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'pagination-btn';
+      nextBtn.textContent = 'Sau »';
+      nextBtn.disabled = !data.hasNextPage;
+      nextBtn.addEventListener('click', () => loadBooks(pageIndex + 1));
+      controls.appendChild(nextBtn);
+
+      // Last page button
+      const lastBtn = document.createElement('button');
+      lastBtn.className = 'pagination-btn';
+      lastBtn.textContent = 'Cuối »»';
+      lastBtn.disabled = !data.hasNextPage;
+      lastBtn.addEventListener('click', () => loadBooks(totalPages));
+      controls.appendChild(lastBtn);
     }
 
     function renderBooks(books) {
@@ -383,7 +492,7 @@
           try {
             await apiRequest(`${apiBase}/api/books/${id}`, { method: 'DELETE' });
             setStatus('Book deleted');
-            await loadBooks();
+            await loadBooks(currentPage);
           } catch (err) {
             setStatus(`Delete failed: ${err.message}`);
           }
