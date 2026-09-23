@@ -1,4 +1,4 @@
-using BookManager.Controllers;
+using BookManager.API.Controllers;
 
 namespace BookManager.Tests.Controllers.Auth;
 

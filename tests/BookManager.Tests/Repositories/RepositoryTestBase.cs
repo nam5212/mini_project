@@ -1,4 +1,4 @@
-using BookManager.Data;
+using BookManager.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookManager.Tests.Repositories;

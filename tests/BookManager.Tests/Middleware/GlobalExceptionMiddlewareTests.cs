@@ -1,5 +1,5 @@
 using System.Net;
-using BookManager.Middleware;
+using BookManager.API.Middleware;
 using Microsoft.Extensions.Logging;
 
 namespace BookManager.Tests.Middleware;

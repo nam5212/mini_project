@@ -1,6 +1,9 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/BookManager.csproj" />
+    <Project Path="src/BookManager/BookManager.API/BookManager.API.csproj" />
+    <Project Path="src/BookManager/BookManager.Application/BookManager.Application.csproj" />
+    <Project Path="src/BookManager/BookManager.Domain/BookManager.Domain.csproj" />
+    <Project Path="src/BookManager/BookManager.Infrastructure/BookManager.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/BookManager.Tests/BookManager.Tests.csproj" />
