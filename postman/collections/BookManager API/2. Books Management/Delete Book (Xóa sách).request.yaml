@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/api/books/{{createdBookId}}"
+method: DELETE
+scripts:
+  - type: beforeRequest
+    code: |-
+      var id = pm.environment.get("createdBookId") || pm.collectionVariables.get("createdBookId") || "1";
+      pm.variables.set("createdBookId", id);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 204 No Content", function () {
+          pm.response.to.have.status(204);
+      });
+
+      pm.test("Response time is under 2000ms", function () {
+          pm.expect(pm.response.responseTime).to.be.below(2000);
+      });
+
+      pm.test("Response body is empty (204 No Content)", function () {
+          pm.expect(pm.response.text()).to.be.empty;
+      });
+      console.log("✅ Book deleted successfully.");
+    language: text/javascript
+order: 6000

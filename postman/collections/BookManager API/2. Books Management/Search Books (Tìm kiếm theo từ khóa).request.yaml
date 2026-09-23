@@ -1,0 +1,55 @@
+$kind: http-request
+url: "{{baseUrl}}/api/books/search?keyword=Clean"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  keyword: Clean
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200 OK", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response time is under 2000ms", function () {
+          pm.expect(pm.response.responseTime).to.be.below(2000);
+      });
+
+      pm.test("Content-Type is application/json", function () {
+          pm.response.to.have.header("Content-Type");
+          pm.expect(pm.response.headers.get("Content-Type")).to.include("application/json");
+      });
+
+      pm.test("Response is an array", function () {
+          var data = pm.response.json();
+          pm.expect(Array.isArray(data)).to.be.true;
+      });
+
+      pm.test("Search results contain keyword 'Clean' in title, author, or category", function () {
+          var data = pm.response.json();
+          var keyword = "clean";
+          if (data.length > 0) {
+              data.forEach(function(book) {
+                  var matchFound =
+                      (book.title && book.title.toLowerCase().includes(keyword)) ||
+                      (book.author && book.author.toLowerCase().includes(keyword)) ||
+                      (book.category && book.category.toLowerCase().includes(keyword));
+                  pm.expect(matchFound, "Book '" + book.title + "' does not match keyword").to.be.true;
+              });
+          }
+      });
+
+      pm.test("Each search result has required fields", function () {
+          var data = pm.response.json();
+          if (data.length > 0) {
+              data.forEach(function(book) {
+                  pm.expect(book).to.have.property('id');
+                  pm.expect(book).to.have.property('title');
+                  pm.expect(book).to.have.property('author');
+                  pm.expect(book).to.have.property('price');
+              });
+          }
+      });
+    language: text/javascript
+order: 5000

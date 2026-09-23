@@ -1,0 +1,14 @@
+name: BookManager - Local Environment
+values:
+  - key: baseUrl
+    value: 'http://localhost:8080'
+  - key: accessToken
+    value: ''
+  - key: refreshToken
+    value: ''
+  - key: username
+    value: testuser
+  - key: password
+    value: Password123@
+  - key: createdBookId
+    value: ''

@@ -1,0 +1,14 @@
+name: BookManager - Production Environment
+values:
+  - key: baseUrl
+    value: 'https://api.bookmanager.yourdomain.com'
+  - key: accessToken
+    value: ''
+  - key: refreshToken
+    value: ''
+  - key: createdBookId
+    value: '1'
+  - key: username
+    value: admin
+  - key: password
+    value: ''

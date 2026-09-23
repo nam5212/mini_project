@@ -1,0 +1,8 @@
+$kind: collection
+description: Comprehensive Postman API Collection for BookManager RESTful Service (Auth & Book Management)
+variables:
+  baseUrl: http://localhost:8080
+  accessToken: ""
+  refreshToken: ""
+  createdBookId: ""
+  username: ""

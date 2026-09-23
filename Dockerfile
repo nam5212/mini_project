@@ -1,11 +1,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-WORKDIR /src
+WORKDIR /app
 
-COPY ["BookManager.csproj", "./"]
-RUN dotnet restore "BookManager.csproj"
+COPY ["src/BookManager.csproj", "src/"]
+RUN dotnet restore "src/BookManager.csproj"
 
 COPY . .
-RUN dotnet publish "BookManager.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "src/BookManager.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
@@ -17,3 +17,4 @@ RUN apt-get update \
 
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "BookManager.dll"]
+

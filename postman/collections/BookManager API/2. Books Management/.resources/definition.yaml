@@ -1,0 +1,9 @@
+$kind: collection
+description: CRUD operations and querying book inventory with Bearer Auth.
+auth:
+  - id: 9fe8b8f0-98bb-403e-8bd5-8133aff8acfb
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{accessToken}}"
+order: 2000

@@ -1,0 +1,11 @@
+global using Xunit;
+global using NSubstitute;
+global using FluentAssertions;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc;
+global using BookManager.Models;
+global using BookManager.DTOs.Auth;
+global using BookManager.DTOs.Books;
+global using BookManager.Services;
+global using BookManager.Repositories;
+global using BookManager.Controllers;

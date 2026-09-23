@@ -1,0 +1,56 @@
+$kind: http-request
+url: "{{baseUrl}}/api/books"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "Clean Architecture",
+      "author": "Robert C. Martin",
+      "price": 299000,
+      "category": "Programming",
+      "stock": 50
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201 Created", function () {
+          pm.response.to.have.status(201);
+      });
+
+      pm.test("Response time is under 2000ms", function () {
+          pm.expect(pm.response.responseTime).to.be.below(2000);
+      });
+
+      pm.test("Content-Type is application/json", function () {
+          pm.response.to.have.header("Content-Type");
+          pm.expect(pm.response.headers.get("Content-Type")).to.include("application/json");
+      });
+
+      pm.test("Captures and saves createdBookId", function () {
+          var data = pm.response.json();
+          pm.expect(data).to.have.property('id');
+          pm.environment.set("createdBookId", data.id);
+          pm.collectionVariables.set("createdBookId", data.id);
+          console.log("✅ Saved createdBookId:", data.id);
+      });
+
+      pm.test("Created book data matches request body", function () {
+          var data = pm.response.json();
+          pm.expect(data.title).to.equal("Clean Architecture");
+          pm.expect(data.author).to.equal("Robert C. Martin");
+          pm.expect(data.price).to.equal(299000);
+          pm.expect(data.category).to.equal("Programming");
+          pm.expect(data.stock).to.equal(50);
+      });
+
+      pm.test("Created book has a valid ID", function () {
+          var data = pm.response.json();
+          pm.expect(data.id).to.exist;
+          pm.expect(data.id).to.be.a('number');
+          pm.expect(data.id).to.be.above(0);
+      });
+    language: text/javascript
+order: 1000
