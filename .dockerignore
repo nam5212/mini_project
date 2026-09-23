@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+.git/
+.gitignore
+.vs/
+.idea/
+bin/
+obj/
+**/bin/
+**/obj/

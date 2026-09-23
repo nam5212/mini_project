@@ -5,6 +5,10 @@ namespace BookManager.Repositories;
 public interface IBookRepository
 {
     Task<List<Book>> GetAllAsync(
+        string? search = null,
+        string? sort = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
         CancellationToken ct = default);
 
     Task<Book?> GetByIdAsync(

@@ -1,34 +1,36 @@
-using BookManager.Data;
 using BookManager.DTOs.Books;
 using BookManager.Models;
-using Microsoft.EntityFrameworkCore;
+using BookManager.Repositories;
 
 namespace BookManager.Services;
 
 public class BookService : IBookService
 {
-    private readonly AppDbContext _context;
+    private readonly IBookRepository _bookRepository;
 
-    public BookService(AppDbContext context)
+    public BookService(IBookRepository bookRepository)
     {
-        _context = context;
+        _bookRepository = bookRepository;
     }
 
-    public async Task<List<Book>> GetAllAsync(CancellationToken ct = default)
+    public async Task<List<BookResponseDto>> GetAllAsync(
+        string? search = null,
+        string? sort = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
+        CancellationToken ct = default)
     {
-        return await _context.Books
-            .AsNoTracking()
-            .OrderBy(x => x.Id)
-            .ToListAsync(ct);
+        var books = await _bookRepository.GetAllAsync(search, sort, minPrice, maxPrice, ct);
+        return books.Select(MapToResponseDto).ToList();
     }
 
-    public async Task<Book?> GetByIdAsync(int id, CancellationToken ct = default)
+    public async Task<BookResponseDto?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        return await _context.Books
-            .FirstOrDefaultAsync(x => x.Id == id, ct);
+        var book = await _bookRepository.GetByIdAsync(id, ct);
+        return book is null ? null : MapToResponseDto(book);
     }
 
-    public async Task<Book> CreateAsync(CreateBookDto dto, CancellationToken ct = default)
+    public async Task<BookResponseDto> CreateAsync(CreateBookDto dto, CancellationToken ct = default)
     {
         var book = new Book
         {
@@ -39,16 +41,13 @@ public class BookService : IBookService
             Stock = dto.Stock
         };
 
-        _context.Books.Add(book);
-        await _context.SaveChangesAsync(ct);
-
-        return book;
+        var createdBook = await _bookRepository.AddAsync(book, ct);
+        return MapToResponseDto(createdBook);
     }
 
     public async Task UpdateAsync(int id, UpdateBookDto dto, CancellationToken ct = default)
     {
-        var book = await _context.Books
-            .FirstOrDefaultAsync(x => x.Id == id, ct)
+        var book = await _bookRepository.GetByIdAsync(id, ct)
             ?? throw new KeyNotFoundException($"Book with id {id} not found.");
 
         book.Title = dto.Title.Trim();
@@ -57,16 +56,35 @@ public class BookService : IBookService
         book.Category = dto.Category.Trim();
         book.Stock = dto.Stock;
 
-        await _context.SaveChangesAsync(ct);
+        await _bookRepository.UpdateAsync(book, ct);
     }
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var book = await _context.Books
-            .FirstOrDefaultAsync(x => x.Id == id, ct)
+        var book = await _bookRepository.GetByIdAsync(id, ct)
             ?? throw new KeyNotFoundException($"Book with id {id} not found.");
 
-        _context.Books.Remove(book);
-        await _context.SaveChangesAsync(ct);
+        await _bookRepository.DeleteAsync(book, ct);
     }
+
+    private static BookResponseDto MapToResponseDto(Book book)
+    {
+        return new BookResponseDto
+        {
+            Id = book.Id,
+            Title = book.Title,
+            Author = book.Author,
+            Price = book.Price,
+            Category = book.Category,
+            Stock = book.Stock
+        };
+    }
+
+    public async Task<List<BookResponseDto>> SearchAsync(string keyword, CancellationToken ct = default)
+    {
+        var books = await _bookRepository.GetAllAsync(keyword, ct: ct);
+        return books.Select(MapToResponseDto).ToList();
+    }
+
+  
 }

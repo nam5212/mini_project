@@ -1,18 +1,21 @@
 using BookManager.DTOs.Books;
-using BookManager.Models;
 
 namespace BookManager.Services;
 
 public interface IBookService
 {
-    Task<List<Book>> GetAllAsync(
+    Task<List<BookResponseDto>> GetAllAsync(
+        string? search = null,
+        string? sort = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null,
         CancellationToken ct = default);
 
-    Task<Book?> GetByIdAsync(
+    Task<BookResponseDto?> GetByIdAsync(
         int id,
         CancellationToken ct = default);
 
-    Task<Book> CreateAsync(
+    Task<BookResponseDto> CreateAsync(
         CreateBookDto dto,
         CancellationToken ct = default);
 
@@ -24,4 +27,9 @@ public interface IBookService
     Task DeleteAsync(
         int id,
         CancellationToken ct = default);
+
+    Task<List<BookResponseDto>> SearchAsync(
+        string keyword,
+        CancellationToken ct = default);
+
 }

@@ -61,6 +61,11 @@
       gap: 10px;
       flex-wrap: wrap;
     }
+    .row input,
+    .row select {
+      min-width: 180px;
+      flex: 1;
+    }
     .status {
       margin-top: 10px;
       padding: 10px 12px;
@@ -116,6 +121,21 @@
         <button id="logoutBtn" class="danger">Logout</button>
       </div>
 
+      <div class="row" style="margin-top: 12px;">
+        <input id="searchInput" placeholder="Search by title or author" />
+        <select id="sortSelect">
+          <option value="">Sort default</option>
+          <option value="price_asc">Price ascending</option>
+          <option value="price_desc">Price descending</option>
+        </select>
+        <input id="minPriceInput" type="number" step="0.01" min="0" placeholder="Min price" />
+        <input id="maxPriceInput" type="number" step="0.01" min="0" placeholder="Max price" />
+      </div>
+      <div class="row" style="margin-top: 8px;">
+        <button type="button" id="applyFiltersBtn" class="secondary">Apply filters</button>
+        <button type="button" id="resetFiltersBtn">Reset filters</button>
+      </div>
+
       <form id="bookForm">
         <input id="bookId" type="hidden" />
         <input id="bookTitle" placeholder="Title" required />
@@ -147,9 +167,13 @@
   </div>
 
   <script>
-    const apiBase = 'http://localhost:8080';
+    const apiBase = window.location.origin;
     const authStatus = document.getElementById('authStatus');
     const bookTableBody = document.getElementById('bookTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const minPriceInput = document.getElementById('minPriceInput');
+    const maxPriceInput = document.getElementById('maxPriceInput');
 
     function getToken() {
       return localStorage.getItem('token');
@@ -259,11 +283,62 @@
     document.getElementById('resetBookBtn').addEventListener('click', resetBookForm);
 
     document.getElementById('loadBooksBtn').addEventListener('click', loadBooks);
+    document.getElementById('applyFiltersBtn').addEventListener('click', loadBooks);
+    document.getElementById('resetFiltersBtn').addEventListener('click', async () => {
+      searchInput.value = '';
+      sortSelect.value = '';
+      minPriceInput.value = '';
+      maxPriceInput.value = '';
+      await loadBooks();
+    });
+
+    [searchInput, minPriceInput, maxPriceInput].forEach((input) => {
+      input.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          await loadBooks();
+        }
+      });
+    });
+
+    sortSelect.addEventListener('change', loadBooks);
 
     async function loadBooks() {
       try {
-        const books = await apiRequest(`${apiBase}/api/books`);
+        const query = new URLSearchParams();
+        const search = searchInput.value.trim();
+        const sort = sortSelect.value;
+        const minPrice = minPriceInput.value.trim();
+        const maxPrice = maxPriceInput.value.trim();
+
+        if (search) {
+          query.set('search', search);
+        }
+
+        if (sort) {
+          query.set('sort', sort);
+        }
+
+        if (minPrice) {
+          query.set('minPrice', minPrice);
+        }
+
+        if (maxPrice) {
+          query.set('maxPrice', maxPrice);
+        }
+
+        if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) {
+          setStatus('Min price must be less than or equal to max price.');
+          return;
+        }
+
+        const url = query.toString()
+          ? `${apiBase}/api/books?${query.toString()}`
+          : `${apiBase}/api/books`;
+
+        const books = await apiRequest(url);
         renderBooks(books);
+        setStatus(`Loaded ${books.length} book(s).`);
       } catch (err) {
         setStatus(`Load books failed: ${err.message}`);
       }

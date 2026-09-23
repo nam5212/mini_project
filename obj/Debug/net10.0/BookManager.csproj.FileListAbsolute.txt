@@ -132,3 +132,7 @@ C:\Users\Admin\Downloads\New folder (4)\BookManager\obj\Debug\net10.0\refint\Boo
 C:\Users\Admin\Downloads\New folder (4)\BookManager\obj\Debug\net10.0\BookManager.pdb
 C:\Users\Admin\Downloads\New folder (4)\BookManager\obj\Debug\net10.0\BookManager.genruntimeconfig.cache
 C:\Users\Admin\Downloads\New folder (4)\BookManager\obj\Debug\net10.0\ref\BookManager.dll
+C:\Users\Admin\Downloads\New folder (4)\BookManager\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Admin\Downloads\New folder (4)\BookManager\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Admin\Downloads\New folder (4)\BookManager\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\Admin\Downloads\New folder (4)\BookManager\obj\Debug\net10.0\BookManager.sourcelink.json
